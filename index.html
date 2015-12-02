@@ -193,13 +193,13 @@ fs.readFile('/etc/hosts', 'utf-8', function(err, data){
 var fs = require('fs');
 
 //we call this function as "thunkify"
-var readFile = function(fileName){
+var readFile = function(fileName, options){
     return function(callback){
-        return fs.readFile(fileName, callback);
+        return fs.readFile(fileName, options, callback);
     };
 };
 
-var thunky = readFile('/etc/hosts');
+var thunky = readFile('/etc/hosts', 'utf-8');
 //accept callback as single argument
 thunky(callback);
 						</code></pre>
