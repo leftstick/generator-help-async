@@ -4,7 +4,7 @@
 	<head>
 		<meta charset="utf-8">
 
-		<title>hybrid</title>
+		<title>Async</title>
 
 		<meta name="description" content="How pretty async syntactic sugar comes">
 		<meta name="author" content="Howard.Zuo">
@@ -30,6 +30,16 @@
 			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
 			document.getElementsByTagName( 'head' )[0].appendChild( link );
 		</script>
+		<style>
+            .reveal code{
+				font-style: italic;
+				color: gray;
+			}
+			.reveal pre code{
+				font-style: normal;
+				color: #dcdcdc;
+			}
+		</style>
 
 		<!--[if lt IE 9]>
 		<script src="lib/js/html5shiv.js"></script>
@@ -51,87 +61,304 @@
 				</section>
 
 				<section>
-					<h2>What is Hybrid?</h2>
-					<p>
-						In software engineering
-					</p>
-					<blockquote>
-						Building GUI with web technology along with a native container, and allow it to access the wider functionality of the device and produce a more refined user experience
-					</blockquote>
+					<h2>How to deal with async task?</h2>
 				</section>
 
 				<section>
-					<h2>Why Hybrid is so popular?</h2>
-					<ul>
-						<li>More powerful than web. Possible to access low level functionality via native API</li>
-						<li>More flexible than native. Updates/refactor on UI is easy to achieve</li>
-						<li>Release cycle is shorter. No need to wait for approval from App Store</li>
-						<li>Development is more efficiency</li>
-						<li>Developer is easier to hire</li>
+					<section>
+						<h2>Callback-based flow</h2>
+					</section>
+					<section>
+						<h3>Callback is good</h3>
+						<pre><code class="javascript" data-trim>
+getSession(function(session){
+    console.log('userId is', session.userId);//handle async process easily
+});
+    					</code></pre>
+					</section>
+					<section>
+						<h3>Callback is not so good</h3>
+						<pre><code class="javascript" data-trim>
+getSession(function(session){
+    getCurrentUser(session.userId, function(user){
+        getUserInfo(user.bestFriendId, function(friend){
+            getPosts(friend.id, function(posts){
+                console.log('posts are', posts);//tricky?
+            });
+        });
+    });
+});
+						</code></pre>
+						<small>
+							We will use this example in the whole slides, so keep it in mind would be good^^
+						</small>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>What is Thunk</h2>
+					</section>
+					<section>
+						<h3>Background</h3>
+						<p>Many years ago, while computer scientists were trying to figure out which the best <a href="https://en.wikipedia.org/wiki/Evaluation_strategy" target="_blank">evaluation strategies</a> is, two options are available</p>
+						<ul style="font-size: 27px;">
+							<li><a href="https://en.wikipedia.org/wiki/Evaluation_strategy#Call_by_value">Call by value</a> - calculates arguments before the call and then passes the resulting values to the subroutine</li>
+							<li><a href="https://en.wikipedia.org/wiki/Evaluation_strategy#Call_by_name">Call by name</a> - the subroutine receives the unevaluated argument expression and then evaluate it at proper time</li>
+						</ul>
+					</section>
+					<section>
+						<h3>Call by value</h3>
+						<pre><code class="javascript" data-trim>
+var x = 1;
+var sum = function(m){
+    return m + 5;
+};
+
+//call by value means following two calls are the same
+sum(x + 2);
+sum(3);
+						</code></pre>
+						<blockquote style="font-size: 30px;">
+							Normally, we believe this cost a bit more, since the expression gets evaluated before it really used
+						</blockquote>
+					</section>
+					<section>
+						<h3>Call by name</h3>
+						<pre><code class="javascript" data-trim>
+var x = 1;
+var sum = function(m){
+    return m + 5;
+};
+
+//call by name means
+sum(x + 2);
+//is the same as following
+(x + 2) + 5;
+						</code></pre>
+						<blockquote style="font-size: 30px;">
+							It might produce multiple versions of the subroutine and multiple copies of the expression code by simply substitute the code of an argument expression for each appearance of the corresponding parameter in the subroutine
+						</blockquote>
+					</section>
+					<section>
+						<h3>Thunk was born</h3>
+						<blockquote style="font-size: 30px;">
+							A helper subroutine, called <code>thunk</code>, that calculates the value of the argument
+						</blockquote>
+						<blockquote style="font-size: 30px;">
+							Let's think of it as 'temporary function expression'
+						</blockquote>
+					</section>
+					<section>
+						<h3>Thunk</h3>
+						<pre><code class="javascript" data-trim>
+var x = 1;
+
+var sum = function(exp){
+    return exp() + 5;
+};
+
+//extract the expression into a function
+//pass the function as argument into sum
+var thunky = function () {
+  return x + 2;
+};
+
+sum(thunky);
+						</code></pre>
+						<blockquote style="font-size: 30px;">
+							What does this have to do with <code>async</code>? hold your horses, <a href="#" class="navigate-right">let's move on</a>
+						</blockquote>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>Async with Thunk</h2>
+						<p>Most async JavaScript APIs accept arguments, and end up with an optional <code>callback</code></p>
+						<pre><code class="javascript" data-trim>
+var fs = require('fs');
+
+fs.readFile('/etc/hosts', 'utf-8', function(err, data){
+    console.log('the content in hosts is', data);
+});
+						</code></pre>
+						<blockquote style="font-size: 30px;">
+							Image what can we do with <code>Thunk</code>?
+						</blockquote>
+					</section>
+
+					<section>
+						<pre><code class="javascript" data-trim>
+var fs = require('fs');
+
+//we call this function as "thunkify"
+var readFile = function(fileName){
+    return function(callback){
+        return fs.readFile(fileName, callback);
+    };
+};
+
+var thunky = readFile('/etc/hosts');
+//accept callback as single argument
+thunky(callback);
+						</code></pre>
+						<blockquote style="font-size: 30px;">
+							You may say "this makes my code even more complex"
+						</blockquote>
+						<blockquote style="font-size: 30px;">
+							Don't worry, <a href="https://github.com/tj" target="_blank">tj</a> had written a cool library for you, It is <a href="https://github.com/tj/node-thunkify" target="_blank">thunkify</a>, let's <a href="#" class="navigate-down">refactor</a> a bit with this <a href="https://github.com/tj/node-thunkify" target="_blank">thunkify</a>
+						</blockquote>
+					</section>
+
+					<section>
+						<h3>Refactor with Thunkify</h3>
+						<pre><code class="javascript" data-trim>
+var thunkify = require('thunkify');
+var fs = require('fs');
+
+var readFile = thunkify(fs.readFile);
+
+var thunky = readFile('/etc/hosts');
+
+thunky(callback);
+						</code></pre>
+						<blockquote style="font-size: 30px;">
+							You may ask: "How does this help my async code?"
+							<br/><br/>
+							I would say: "Nothing useful without <code>Generator</code>"
+							<br/><br/>
+                            But let's take a look <a href="#" class="navigate-right"><code>Promise</code></a> first?
+						</blockquote>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>Doesn Promise help?</h2>
+						<pre><code class="javascript" data-trim>
+getSession()
+.then(function(session){
+    return getCurrentUser(session.userId);
+})
+.then(function(user){
+    return getUserInfo(user.bestFriendId);
+})
+.then(function(friend){
+    return getPosts(friend.id);
+})
+.then(function(posts){
+    console.log('posts are', posts);
+})
+.catch(function(err){
+	console.error('ERROR', err);
+});
+						</code></pre>
+						<blockquote style="font-size: 30px;">
+							This is better than <a href="#/2/2">callback hell</a>, right?
+						</blockquote>
+						<small>Once you'd like to know how <code>Promise</code> achieved this, <a href="http://leftstick.gitcafe.io/tech/2015/11/07/writing-your-own-promise/" target="_blank">here</a> is the place</small>
+					</section>
+					<section>
+						<h2>Promiseify is required</h2>
+						<pre><code class="javascript" data-trim>
+var fs = require('fs');
+
+//most node APIs are callback-based
+//But we love something like this
+fs.readFile('/etc/hosts', 'utf-8')
+.then(function(data){
+    console.log('the content in hosts is', data);
+})
+.catch(function(err){
+    console.error('ERROR', err);
+});
+						</code></pre>
+						<p>Let me introduce <a href="https://github.com/leftstick/just-promiseify" target="_blank">Promiseify</a></p>
+						<p>Let's see how it helps on above code</p>
+					</section>
+					<section>
+						<h2>Promisesify</h2>
+						<pre><code class="javascript" data-trim>
+var fs = require('fs');
+var promiseify = require('just-promiseify');
+
+var readFile = promiseify(fs.readFile);//usage just like thunkify
+
+readFile('/etc/hosts', 'utf-8')
+.then(function(data){
+    console.log('the content in hosts is', data);
+})
+.catch(function(err){
+    console.error('ERROR', err);
+});
+						</code></pre>
+						<blockquote style="font-size: 30px;">
+							Turn a regular callback-based function into one which returns a <code>Promise</code>
+						</blockquote>
+					</section>
+				</section>
+
+				<section>
+					<section>
+					    <h2>Is Promise the end?</h2>
+                        <p>No actually, <code>generator</code> improves our code even further</p>
+					</section>
+					<section>
+					    <h3>Write as synchronized?</h3>
+						<pre><code class="javascript" data-trim>
+try{
+    var session = getSession();
+    var user = getCurrentUser(session.userId);
+    var friend = getUserInfo(user.bestFriendId);
+    var posts = getPosts(friend.id);
+    console.log('posts are', posts);
+}catch(e){
+    console.error('ERROR', err);
+}
+						</code></pre>
+						<blockquote style="font-size: 30px;">
+							It's not a dream with <code>generator</code> + <a href="https://github.com/tj/co" target="_blank">co</a>
+							<br>
+							Let's <a href="#" class="navigate-down">refactor</a> a bit
+						</blockquote>
+					</section>
+					<section>
+					    <h3>With co</h3>
+						<pre><code class="javascript" data-trim>
+var co = require('co');
+
+var execute = function*() {
+    try {
+        var session = yield getSession();
+        var user = yield getCurrentUser(session.userId);
+        var friend = yield getUserInfo(user.bestFriendId);
+        var posts = yield getPosts(friend.id);
+
+        console.log('posts are', posts);
+    } catch (e) {
+        console.error('ERROR', err);
+    }
+};
+
+co(execute);
+						</code></pre>
+						<blockquote style="font-size: 30px; text-align: left;">
+							<code>yield</code> allows <code>thunk</code> and <code>Promise</code>, that's why we introduce <a href="#/3">Thunk</a> earily this slides
+							<br/><br/>
+							I hope this can make you happy
+						</blockquote>
+					</section>
+				</section>
+
+				<section>
+					<h2>ES7 - async</h2>
+					<p><code>async</code> is syntactic sugar for <code>generator</code>, the usage is similar. Few advantages:</p>
+					<ul style="font-size: 27px;">
+						<li>built-in executor, which mean no <a href="https://github.com/tj/co" target="_blank">co</a> any more</li>
+						<li>more readable, <code>async</code> and <code>await</code> are more clear than <code>*</code> and <code>yield</code></li>
+						<li>more robust, <code>await</code> allows more types</li>
 					</ul>
-				</section>
-
-				<section>
-					<h2>Hybrid is only for mobile?</h2>
-					<p>No, basically desktop is covered as well.</p>
-				</section>
-
-				<section>
-					<section>
-						<h2>What are the popular mobile solutions?</h2>
-						<ul>
-							<li><a href="http://cordova.apache.org/">cordova</a></li>
-							<li><a href="http://phonegap.com/">PhoneGap</a>(think of a wrapper of cordova)</li>
-							<li><a href="https://www.syncfusion.com/products/orubase">syncfusion</a>(high level wrapper of cordova)</li>
-							<li><a href="https://crosswalk-project.org/">crosswalk</a></li>
-							<li><a href="https://software.intel.com/en-us/intel-xdk">intel-xdk</a></li>
-							<li><a href="http://www.manifoldjs.com/">manifoldjs</a></li>
-							<li><a href="http://www.apicloud.com/">APICloud</a></li>
-							<li><a href="http://www.appcan.cn/">AppCan</a></li>
-						</ul>
-					</section>
-					<section>
-						<h2>What are the popular desktop solutions?</h2>
-						<ul>
-							<li><a href="http://nwjs.io/">nw.js</a></li>
-							<li><a href="http://electron.atom.io/">electron</a></li>
-							<li><a href="http://www.manifoldjs.com/">manifoldjs</a></li>
-							<li><a href="https://code.google.com/p/geckofx/">C# + GeckoFX</a></li>
-							<li><a href="http://djproject.sourceforge.net/ns/index.html">Java + DJ</a></li>
-						</ul>
-					</section>
-				</section>
-
-				<section>
-					<section>
-					    <h2>What shall we do today?</h2>
-                        <p>We are going to create a desktop app in few minutes</p>
-					</section>
-					<section>
-					    <p>Install <code>generator-electron-naive</code></p>
-						<pre><code class="bash" data-trim>
-npm install -g generator-electron-naive #use sudo if you are on *nix OS
-						</code></pre>
-						<p>Create project with <code>generator-electron-naive</code></p>
-						<pre><code class="bash" data-trim>
-yo electron-naive #answer following questions
-						</code></pre>
-						<img src="img/questions.png" alt="">
-						<p><color style="color: green;">✔</color> Project generated!!!</p>
-					</section>
-					<section>
-					    <p>Move into the created project</p>
-						<pre><code class="bash" data-trim>
-cd test-project #the name might be different in you case
-						</code></pre>
-						<p>Generate executable app</p>
-						<pre><code class="bash" data-trim>
-npm start #the same as "gulp"
-						</code></pre>
-						<img src="img/generated.png" alt="">
-						<p>Executable app generated!!!</p>
-						<p>Try finding it at <code>dist/v0.35.1/</code></p>
-					</section>
 				</section>
 
 				<section style="text-align: left;">
@@ -157,7 +384,7 @@ npm start #the same as "gulp"
 				progress: true,
 				history: true,
 				center: true,
-				width: 1000,
+				width: 1100,
 
 				transition: 'slide', // none/fade/slide/convex/concave/zoom
 
