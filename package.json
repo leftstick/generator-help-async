@@ -1,0 +1,19 @@
+{
+  "name": "javascript-async-history",
+  "version": "1.0.0",
+  "description": "A slides tell how callback based flow can be improved",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leftstick/javascript-async-history.git"
+  },
+  "keywords": [
+    "javascript-async-history",
+    "slide"
+  ],
+  "author": "Howard.Zuo",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/leftstick/javascript-async-history/issues"
+  },
+  "homepage": "https://github.com/leftstick/javascript-async-history#readme"
+}

@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>hybrid</title>
+
+		<meta name="description" content="How pretty async syntactic sugar comes">
+		<meta name="author" content="Howard.Zuo">
+
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+		<link rel="shortcut icon" href="img/favicon.ico" >
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/sky.css" id="theme">
+
+		<!-- Code syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section>
+					<h1>Async</h1>
+					<h3>Evolutionary History</h3>
+					<p>
+						<small>Created by <a href="http://leftstick.gitcafe.io">Howard.Zuo</a> / <a href="mailto:leftstick@qq.com">@leftstick</a></small>
+					</p>
+				</section>
+
+				<section>
+					<h2>What is Hybrid?</h2>
+					<p>
+						In software engineering
+					</p>
+					<blockquote>
+						Building GUI with web technology along with a native container, and allow it to access the wider functionality of the device and produce a more refined user experience
+					</blockquote>
+				</section>
+
+				<section>
+					<h2>Why Hybrid is so popular?</h2>
+					<ul>
+						<li>More powerful than web. Possible to access low level functionality via native API</li>
+						<li>More flexible than native. Updates/refactor on UI is easy to achieve</li>
+						<li>Release cycle is shorter. No need to wait for approval from App Store</li>
+						<li>Development is more efficiency</li>
+						<li>Developer is easier to hire</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Hybrid is only for mobile?</h2>
+					<p>No, basically desktop is covered as well.</p>
+				</section>
+
+				<section>
+					<section>
+						<h2>What are the popular mobile solutions?</h2>
+						<ul>
+							<li><a href="http://cordova.apache.org/">cordova</a></li>
+							<li><a href="http://phonegap.com/">PhoneGap</a>(think of a wrapper of cordova)</li>
+							<li><a href="https://www.syncfusion.com/products/orubase">syncfusion</a>(high level wrapper of cordova)</li>
+							<li><a href="https://crosswalk-project.org/">crosswalk</a></li>
+							<li><a href="https://software.intel.com/en-us/intel-xdk">intel-xdk</a></li>
+							<li><a href="http://www.manifoldjs.com/">manifoldjs</a></li>
+							<li><a href="http://www.apicloud.com/">APICloud</a></li>
+							<li><a href="http://www.appcan.cn/">AppCan</a></li>
+						</ul>
+					</section>
+					<section>
+						<h2>What are the popular desktop solutions?</h2>
+						<ul>
+							<li><a href="http://nwjs.io/">nw.js</a></li>
+							<li><a href="http://electron.atom.io/">electron</a></li>
+							<li><a href="http://www.manifoldjs.com/">manifoldjs</a></li>
+							<li><a href="https://code.google.com/p/geckofx/">C# + GeckoFX</a></li>
+							<li><a href="http://djproject.sourceforge.net/ns/index.html">Java + DJ</a></li>
+						</ul>
+					</section>
+				</section>
+
+				<section>
+					<section>
+					    <h2>What shall we do today?</h2>
+                        <p>We are going to create a desktop app in few minutes</p>
+					</section>
+					<section>
+					    <p>Install <code>generator-electron-naive</code></p>
+						<pre><code class="bash" data-trim>
+npm install -g generator-electron-naive #use sudo if you are on *nix OS
+						</code></pre>
+						<p>Create project with <code>generator-electron-naive</code></p>
+						<pre><code class="bash" data-trim>
+yo electron-naive #answer following questions
+						</code></pre>
+						<img src="img/questions.png" alt="">
+						<p><color style="color: green;">✔</color> Project generated!!!</p>
+					</section>
+					<section>
+					    <p>Move into the created project</p>
+						<pre><code class="bash" data-trim>
+cd test-project #the name might be different in you case
+						</code></pre>
+						<p>Generate executable app</p>
+						<pre><code class="bash" data-trim>
+npm start #the same as "gulp"
+						</code></pre>
+						<img src="img/generated.png" alt="">
+						<p>Executable app generated!!!</p>
+						<p>Try finding it at <code>dist/v0.35.1/</code></p>
+					</section>
+				</section>
+
+				<section style="text-align: left;">
+					<h1>THE END</h1>
+					<p>
+						- <a href="https://www.npmjs.com/package/generator-electron-naive">Try generator-electron-naive</a> <br>
+					</p>
+				</section>
+
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+
+			// Full list of configuration options available at:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+				width: 1000,
+
+				transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+				// Optional reveal.js plugins
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
