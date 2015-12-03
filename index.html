@@ -110,6 +110,7 @@ getSession(function(session){
 					<section>
 						<h3>Call by value</h3>
 						<pre><code class="javascript" data-trim>
+'use strict'
 var x = 1;
 var sum = function(m){
     return m + 5;
@@ -126,6 +127,7 @@ sum(3);
 					<section>
 						<h3>Call by name</h3>
 						<pre><code class="javascript" data-trim>
+'use strict'
 var x = 1;
 var sum = function(m){
     return m + 5;
@@ -152,6 +154,7 @@ sum(x + 2);
 					<section>
 						<h3>Thunk</h3>
 						<pre><code class="javascript" data-trim>
+'use strict'
 var x = 1;
 
 var sum = function(exp){
@@ -177,6 +180,7 @@ sum(thunky);
 						<h2>Async with Thunk</h2>
 						<p>Most async JavaScript APIs accept arguments, and end up with an optional <code>callback</code></p>
 						<pre><code class="javascript" data-trim>
+'use strict'
 var fs = require('fs');
 
 fs.readFile('/etc/hosts', 'utf-8', function(err, data){
@@ -190,6 +194,7 @@ fs.readFile('/etc/hosts', 'utf-8', function(err, data){
 
 					<section>
 						<pre><code class="javascript" data-trim>
+'use strict'
 var fs = require('fs');
 
 //we call this function as "thunkify"
@@ -214,12 +219,13 @@ thunky(callback);
 					<section>
 						<h3>Refactor with Thunkify</h3>
 						<pre><code class="javascript" data-trim>
+'use strict'
 var thunkify = require('thunkify');
 var fs = require('fs');
 
 var readFile = thunkify(fs.readFile);
 
-var thunky = readFile('/etc/hosts');
+var thunky = readFile('/etc/hosts', 'utf-8');
 
 thunky(callback);
 						</code></pre>
@@ -237,6 +243,8 @@ thunky(callback);
 					<section>
 						<h2>Doesn Promise help?</h2>
 						<pre><code class="javascript" data-trim>
+'use strict'
+
 getSession()
 .then(function(session){
     return getCurrentUser(session.userId);
@@ -251,7 +259,7 @@ getSession()
     console.log('posts are', posts);
 })
 .catch(function(err){
-	console.error('ERROR', err);
+    console.error('ERROR', err);
 });
 						</code></pre>
 						<blockquote style="font-size: 30px;">
@@ -262,6 +270,8 @@ getSession()
 					<section>
 						<h2>Promiseify is required</h2>
 						<pre><code class="javascript" data-trim>
+'use strict'
+
 var fs = require('fs');
 
 //most node APIs are callback-based
@@ -280,6 +290,8 @@ fs.readFile('/etc/hosts', 'utf-8')
 					<section>
 						<h2>Promisesify</h2>
 						<pre><code class="javascript" data-trim>
+'use strict'
+
 var fs = require('fs');
 var promiseify = require('just-promiseify');
 
@@ -307,6 +319,8 @@ readFile('/etc/hosts', 'utf-8')
 					<section>
 					    <h3>Write as synchronized?</h3>
 						<pre><code class="javascript" data-trim>
+'use strict'
+
 try{
     var session = getSession();
     var user = getCurrentUser(session.userId);
@@ -326,15 +340,15 @@ try{
 					<section>
 					    <h3>With co</h3>
 						<pre><code class="javascript" data-trim>
+'use strict'
 var co = require('co');
+var execute = function*() {//this is a generator
 
-var execute = function*() {
-    try {
+    try {//the thing right after yield, we call them "yieldables"
         var session = yield getSession();
         var user = yield getCurrentUser(session.userId);
         var friend = yield getUserInfo(user.bestFriendId);
         var posts = yield getPosts(friend.id);
-
         console.log('posts are', posts);
     } catch (e) {
         console.error('ERROR', err);
@@ -345,26 +359,54 @@ co(execute);
 						</code></pre>
 						<blockquote style="font-size: 30px; text-align: left;">
 							<code>yield</code> allows <code>thunk</code> and <code>Promise</code>, that's why we introduce <a href="#/3">Thunk</a> earily this slides
-							<br/><br/>
-							I hope this can make you happy
 						</blockquote>
 					</section>
 				</section>
 
 				<section>
-					<h2>ES7 - async</h2>
-					<p><code>async</code> is syntactic sugar for <code>generator</code>, the usage is similar. Few advantages:</p>
-					<ul style="font-size: 27px;">
-						<li>built-in executor, which mean no <a href="https://github.com/tj/co" target="_blank">co</a> any more</li>
-						<li>more readable, <code>async</code> and <code>await</code> are more clear than <code>*</code> and <code>yield</code></li>
-						<li>more robust, <code>await</code> allows more types</li>
-					</ul>
+					<section>
+						<h2>ES7 - async</h2>
+						<p><code>async</code> is syntactic sugar for <code>generator</code>, the usage is similar. Few advantages:</p>
+						<ul style="font-size: 27px;">
+							<li>built-in executor, which mean no <a href="https://github.com/tj/co" target="_blank">co</a> any more</li>
+							<li>more readable, <code>async</code> and <code>await</code> are more clear than <code>*</code> and <code>yield</code></li>
+							<li>more robust, <code>await</code> allows more types</li>
+						</ul>
+						<blockquote style="font-size: 30px; text-align: left;">
+							Let's <a href="#" class="navigate-down">refactor</a> a bit with previous <code>generator</code> version
+						</blockquote>
+					</section>
+					<section>
+                        <h2>ES7 version</h2>
+						<pre><code class="javascript" data-trim>
+'use strict'
+
+var execute = async function() {//this is async function
+
+    try {//the thing right after yield, we call them "yieldables"
+        var session = await getSession();
+        var user = await getCurrentUser(session.userId);
+        var friend = await getUserInfo(user.bestFriendId);
+        var posts = await getPosts(friend.id);
+
+        console.log('posts are', posts);
+    } catch (e) {
+        console.error('ERROR', err);
+    }
+};
+
+execute();
+						</code></pre>
+					</section>
 				</section>
 
 				<section style="text-align: left;">
 					<h1>THE END</h1>
 					<p>
-						- <a href="https://www.npmjs.com/package/generator-electron-naive">Try generator-electron-naive</a> <br>
+						- <a href="https://github.com/tj/node-thunkify">Thunkify</a> <br>
+						- <a href="https://github.com/leftstick/just-promiseify">Promiseify</a> <br>
+						- <a href="https://github.com/tj/co">co</a> <br>
+						- <a href="https://babeljs.io/">Babel</a> <br>
 					</p>
 				</section>
 
